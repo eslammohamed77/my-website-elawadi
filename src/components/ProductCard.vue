@@ -1,16 +1,16 @@
 <template>
-  <div class="product-card">
+  <div class="product-card" @click="goToDetails">
     <div class="image-container">
       <img :src="product.image_path" :alt="product.name" />
       <div v-if="product.discount_price" class="discount-badge">
         -{{ discountPercent }}%
       </div>
       <div class="hover-overlay">
-        <button class="add-to-cart" @click="addToCart">Add to cart</button>
+        <button class="add-to-cart" @click.stop="addToCart">Add to cart</button>
         <div class="actions">
-          <span>💬 Share</span>
-          <span>🔁 Compare</span>
-          <span @click="addToWishlist" class="like-button">🤍 Like</span>
+          <span @click.stop>💬 Share</span>
+          <span @click.stop>🔁 Compare</span>
+          <span @click.stop="addToWishlist" class="like-button">🤍 Like</span>
         </div>
       </div>
     </div>
@@ -29,18 +29,13 @@
 
 <script>
 export default {
-  name: "ProductCard",
-  props: {
-    product: {
-      type: Object,
-      required: true,
-    },
-  },
+  props: ['product'],
   computed: {
     discountPercent() {
       if (this.product.discount_price) {
         return (
-          100 - Math.round((this.product.discount_price / this.product.price) * 100)
+          100 -
+          Math.round((this.product.discount_price / this.product.price) * 100)
         );
       }
       return 0;
@@ -48,27 +43,38 @@ export default {
   },
   methods: {
     formattedPrice(price) {
-      if (price) {
-        return price.toLocaleString("id-ID");
-      }
-      return "0";
+      return price ? price.toLocaleString("id-ID") : "0";
     },
     addToCart() {
-      this.$emit("product-added", this.product); // إبلاغ المكون الأب
+      this.$emit("product-added", this.product);
     },
     addToWishlist() {
       this.$emit("add-to-wishlist", this.product);
       let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-      if (!wishlist.some(item => item.id === this.product.id)) {
+      if (!wishlist.some((item) => item.id === this.product.id)) {
         wishlist.push(this.product);
         localStorage.setItem("wishlist", JSON.stringify(wishlist));
       }
+    },
+    goToDetails() {
+      this.$router.push({
+        name: "ProductDetails",
+        params: { id: this.product.id },
+      });
     },
   },
 };
 </script>
 
+
+
 <style scoped>
+.product-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .product-card {
   width: 100%;
   height: 450px;
@@ -83,15 +89,14 @@ export default {
 
 .image-container {
   position: relative;
-  height: 500px; /* ارتفاع ثابت للصور */
+  height: 500px;
   overflow: hidden;
 }
 
 .image-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* يجعل الصور تغطي المساحة دون تشويه */
-  /* display: block; */
+  object-fit: cover;
 }
 
 .discount-badge {

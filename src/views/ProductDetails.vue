@@ -1,76 +1,73 @@
 <template>
-    <div v-if="product" class="product-details">
-      <div class="container">
-        <img :src="product.image_path" alt="Product Image" class="product-image" />
-        <div class="info">
-          <h1>{{ product.name }}</h1>
-          <p class="desc">{{ product.description }}</p>
-          <p class="price">
-            Rp {{ formattedPrice(product.discount_price || product.price) }}
-            <span v-if="product.discount_price" class="old-price">
-              Rp {{ formattedPrice(product.price) }}
-            </span>
-          </p>
-          <!-- Add to cart, color, size, etc. -->
-        </div>
-      </div>
-    </div>
-    <div v-else>
-      <p>Loading...</p>
-    </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    name: "ProductDetails",
-    data() {
-      return {
-        product: null,
-      };
+  <div v-if="product">
+    <h1>{{ product.name }}</h1>
+    <p>{{ product.description }}</p>
+    <img :src="product.image_path" alt="Product Image" />
+    <p>Price: Rp {{ formattedPrice(product.price) }}</p>
+    <p v-if="product.discount_price">
+      Discounted Price: Rp {{ formattedPrice(product.discount_price) }}
+    </p>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['id'],
+  data() {
+    return {
+      product: null,
+    };
+  },
+  async created() {
+    await this.fetchProductDetails();
+  },
+  methods: {
+    async fetchProductDetails() {
+      try {
+        const response = await fetch(`https://furniture-api.fly.dev/v1/products/${this.id}`);
+        if (!response.ok) {
+          throw new Error('لم يتم العثور على المنتج');
+        }
+        const data = await response.json();
+        this.product = data.data; // البيانات الخاصة بالمنتج موجودة في data
+      } catch (error) {
+        console.error('خطأ في جلب بيانات المنتج:', error);
+      }
     },
-    async created() {
-      const id = this.$route.params.id;
-      const response = await axios.get(`https://furniture-api.fly.dev/api/products/${id}`);
-      this.product = response.data.data;
+    formattedPrice(price) {
+      return price ? price.toLocaleString('id-ID') : '0';
     },
-    methods: {
-      formattedPrice(price) {
-        return price ? price.toLocaleString("id-ID") : "0";
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .container {
-    display: flex;
-    gap: 40px;
-    padding: 40px;
-  }
-  
-  .product-image {
-    width: 400px;
-    height: auto;
-    object-fit: contain;
-  }
-  
-  .info {
-    flex: 1;
-  }
-  
-  .price {
-    font-weight: bold;
-    font-size: 20px;
-    margin-top: 10px;
-  }
-  
-  .old-price {
-    text-decoration: line-through;
-    color: gray;
-    margin-left: 10px;
-    font-weight: normal;
-  }
-  </style>
-  
+  },
+};
+</script>
+
+
+
+<style scoped>
+.product-details {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.product-details img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: gray;
+  margin-left: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+}
+</style>

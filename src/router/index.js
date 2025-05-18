@@ -14,7 +14,12 @@ const routes = [
   { path: '/about', name: 'About', component: About },
   { path: '/cart', name: 'Cart', component: Cart },
   { path: '/wishlist', name: 'Wishlist', component: Wishlist },
-  { path: "/product/:id", name: "ProductDetails", component: ProductDetails },
+  {
+    path: "/product/:id",
+    name: "ProductDetails",
+    component: () => import('@/views/ProductDetails.vue'),
+    props: true, // ✅ ده اللي لازم تضيفه
+  },
 ]
 
 const router = createRouter({
@@ -22,4 +27,4 @@ const router = createRouter({
   routes,
 })
 
-export default router;
+export default router
